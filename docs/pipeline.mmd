@@ -1,0 +1,46 @@
+flowchart LR
+    %% ===== Source System =====
+    subgraph SOURCE[Source System]
+        MF[Mainframe<br/>Invoice Generation]
+    end
+
+    %% ===== Ingestion via SFTP =====
+    subgraph INGEST[Ingestion]
+        SFTP[SFTP Server<br/>Linux VM Ingress]
+    end
+
+    %% ===== Raw Storage =====
+    subgraph RAW[Storage: Raw]
+        GCS_RAW[GCS Raw Bucket<br/>AFP TAR Files]
+    end
+
+    %% ===== Processing on Linux VM =====
+    subgraph PROC[Processing on Linux VM]
+        VM[Linux VM<br/>ETL / Conversion]
+        AFP[Extracted AFP Files]
+        PDF[PDF Files]
+        VM -->|untar| AFP -->|AFP to PDF| PDF
+    end
+
+    %% ===== Processed Storage =====
+    subgraph PROCESSED[Storage: Processed]
+        GCS_PROC[GCS Processed Bucket<br/>PDF files or PDF TARs]
+    end
+
+    %% ===== Archive Storage =====
+    subgraph ARCHIVE[Storage: Archive]
+        GCS_ARCH[GCS Archive Bucket<br/>AFP TARs]
+    end
+
+    %% ===== Analytics =====
+    subgraph ANALYTICS[Analytics]
+        BQ[BigQuery<br/>Invoice Metadata<br/>BAN / invoice_id / amount / gcs_pdf_path]
+    end
+
+    %% ===== Flows =====
+    MF -->|SFTP transfer| SFTP
+    SFTP -->|gsutil cp| GCS_RAW
+    GCS_RAW -->|gsutil cp| VM
+    PDF -->|upload| GCS_PROC
+    GCS_RAW -->|move after success| GCS_ARCH
+    VM --> BQ
