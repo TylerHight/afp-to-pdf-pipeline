@@ -106,18 +106,63 @@ log "ARCHIVE_BUCKET   : $ARCHIVE_BUCKET"
 log "============================================================"
 
 # ----------------------------------------
-# 1) Ingestion Boundary: SFTP -> GCS Raw
+# 1) Ingestion Boundary: SFTP -> local ingress
 # ----------------------------------------
-log "[INGEST] Placeholder"
-log "Would detect TAR files delivered via SFTP into: $INGRESS_DIR"
-log "Would validate completeness and promote them to: $RAW_BUCKET"
+log "[INGEST] Checking for TAR files in ingress directory"
+
+shopt -s nullglob
+TAR_FILES=("$INGRESS_DIR"/*.tar)
+shopt -u nullglob
+
+if [[ ${#TAR_FILES[@]} -eq 0 ]]; then
+  log "[INGEST] No TAR files found in $INGRESS_DIR"
+else
+  log "[INGEST] Found ${#TAR_FILES[@]} TAR file(s):"
+  for tarfile in "${TAR_FILES[@]}"; do
+    log "  - $(basename "$tarfile")"
+  done
+fi
 
 # ----------------------------------------
-# 2) Batch Selection
+# 2) Batch Selection (choose one TAR from ingress)
 # ----------------------------------------
-log "[SELECT] Placeholder"
-log "Would list TAR files in $RAW_BUCKET"
-log "Would select next batch and derive BATCH_ID from filename"
+log "[SELECT] Selecting a batch from ingress"
+
+# Reuse the detection pattern and capture .tar files into an array
+shopt -s nullglob
+TAR_FILES=("$INGRESS_DIR"/*.tar)
+shopt -u nullglob
+
+if [[ ${#TAR_FILES[@]} -eq 0 ]]; then
+  log "[SELECT] No TAR files available to select in $INGRESS_DIR"
+  # We exit 0 because the pipeline being idle is not an error; schedulers can rerun later.
+  log "[SELECT] Exiting gracefully; nothing to do."
+  log "============================================================"
+  log "END batch ETL runner (no operations performed)"
+  log "============================================================"
+  exit 0
+fi
+
+# For now, pick the first file (you can sort or filter by pattern/date later)
+IN_TAR_PATH="${TAR_FILES[0]}"
+IN_TAR_FILE="$(basename "$IN_TAR_PATH")"
+
+# Derive a batch ID by stripping the .tar extension
+BATCH_ID="${IN_TAR_FILE%.tar}"
+
+# Pre-compute working and output paths for later steps (no side effects yet)
+AFP_DIR="$WORK_DIR/${BATCH_ID}_afp"
+PDF_DIR="$WORK_DIR/${BATCH_ID}_pdf"
+LOCAL_TAR_PATH="$RAW_DIR/${IN_TAR_FILE}"   # where we'll cache the TAR when we implement downloads
+BATCH_PROCESSED_DIR="$PROCESSED_DIR/$BATCH_ID"
+
+log "[SELECT] Selected TAR: $IN_TAR_FILE"
+log "[SELECT] Derived BATCH_ID: $BATCH_ID"
+log "[SELECT] Planned paths:"
+log "         AFP_DIR           : $AFP_DIR"
+log "         PDF_DIR           : $PDF_DIR"
+log "         LOCAL_TAR_PATH    : $LOCAL_TAR_PATH"
+log "         BATCH_PROCESSED_DIR: $BATCH_PROCESSED_DIR"
 
 # ----------------------------------------
 # 3) Download TAR
