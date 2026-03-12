@@ -22,3 +22,7 @@ The goal is to practice and demonstrate:
 - Batch ETL design
 - Cloud storage patterns
 - Clear separation of responsibilities across systems
+
+## Development Resources
+
+- **Processed PDFs (GCS bucket):** `gs://afp-pdfs-dev-highttyler`
