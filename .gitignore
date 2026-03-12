@@ -1,0 +1,40 @@
+# --- Build / temp / local artifacts ---
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# --- Script outputs (keep them out of git) ---
+# CSVs produced by coverage scripts
+/coverage.csv
+/coverage_months.csv
+/missing_months.csv
+
+# Any CSVs created under scripts/ or working dirs
+/scripts/*.csv
+
+# If you ever write outputs under a local workspace
+/mini_pipeline/
+/tmp/
+/**/*.csv~
+
+# --- Terraform local state (already recommended) ---
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.backup
+infra/terraform/*.tfvars
+!infra/terraform/terraform.tfvars.example
+
+# --- Allow versioned test fixtures ---
+# Keep sample data under testdata/ (committed)
+#!testdata/**/*.csv
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+!terraform.tfvars.example
+
