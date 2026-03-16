@@ -121,6 +121,32 @@ def _create_client(project_id: str) -> "bigquery.Client":
     return bigquery.Client(project=project_id)
 
 
+def _prepare_details_value(
+    client: "bigquery.Client", config: BigQueryConfig, details_json: dict[str, Any]
+) -> Any:
+    """Match the inserted details value to the table's current schema type."""
+    table = client.get_table(config.table_fqn)
+    details_field = next((field for field in table.schema if field.name == "details_json"), None)
+    if details_field is None:
+        raise RuntimeError(f"Column details_json not found in {config.table_fqn}.")
+
+    # BigQuery JSON columns expect a JSON-formatted string in streaming inserts.
+    if details_field.field_type == "JSON":
+        return json.dumps(details_json)
+
+    # Backward compatibility for older schemas that may have used RECORD.
+    if details_field.field_type == "RECORD":
+        return details_json
+
+    # String columns can still hold structured payloads as serialized JSON.
+    if details_field.field_type == "STRING":
+        return json.dumps(details_json)
+
+    raise RuntimeError(
+        f"Unsupported details_json field type {details_field.field_type!r} in {config.table_fqn}."
+    )
+
+
 def insert_demo_operation(
     config: BigQueryConfig,
     operation_type: str,
@@ -129,13 +155,14 @@ def insert_demo_operation(
     details_json: dict[str, Any],
 ) -> dict[str, Any]:
     client = _create_client(config.project_id)
+    details_value = _prepare_details_value(client, config, details_json)
     now_utc = datetime.now(timezone.utc).isoformat()
     row = {
         "operation_id": str(uuid.uuid4()),
         "operation_type": operation_type,
         "status": status,
         "source_system": source_system,
-        "details_json": details_json,
+        "details_json": details_value,
         "created_at": now_utc,
         "updated_at": now_utc,
     }
