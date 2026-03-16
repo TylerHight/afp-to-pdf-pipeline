@@ -86,6 +86,12 @@ variable "bigquery_operations_table_id" {
   default     = "pipeline_operations"
 }
 
+variable "bigquery_operations_table_deletion_protection" {
+  type        = bool
+  description = "When true, prevents Terraform from deleting the BigQuery operations table."
+  default     = false
+}
+
 variable "bigquery_worker_service_account_email" {
   type        = string
   description = "Service account email used by worker VMs for BigQuery access."

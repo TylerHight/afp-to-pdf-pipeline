@@ -11,9 +11,10 @@ resource "google_bigquery_dataset" "this" {
 resource "google_bigquery_table" "pipeline_operations" {
   count = var.create_operations_table ? 1 : 0
 
-  project    = var.project_id
-  dataset_id = google_bigquery_dataset.this.dataset_id
-  table_id   = var.operations_table_id
+  project             = var.project_id
+  dataset_id          = google_bigquery_dataset.this.dataset_id
+  table_id            = var.operations_table_id
+  deletion_protection = var.operations_table_deletion_protection
 
   description = "Generic pipeline operations table for lightweight metadata and audit events."
 

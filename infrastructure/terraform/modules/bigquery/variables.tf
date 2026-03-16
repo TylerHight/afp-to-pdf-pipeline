@@ -32,6 +32,12 @@ variable "operations_table_id" {
   default     = "pipeline_operations"
 }
 
+variable "operations_table_deletion_protection" {
+  type        = bool
+  description = "When true, prevents Terraform from deleting the operations table."
+  default     = false
+}
+
 variable "worker_service_account_email" {
   type        = string
   description = "Service account email used by Linux VMs. Leave blank to skip IAM grants."
