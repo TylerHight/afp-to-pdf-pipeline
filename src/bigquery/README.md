@@ -1,0 +1,1 @@
+This folder holds logic for interacting with BigQuery.

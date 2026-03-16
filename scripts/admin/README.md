@@ -1,0 +1,1 @@
+This folder contains utility scripts for interacting with the system manually.

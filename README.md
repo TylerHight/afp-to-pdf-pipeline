@@ -1,28 +1,51 @@
-# GCP Batch ETL Pipeline (Mock, Production‑Style)
+# AFP to PDF Invoice Pipeline
 
-A production‑style **batch ETL** pipeline that simulates a **mainframe → cloud** workflow on **Google Cloud Platform (GCP)**.
+This repository contains the code and infrastructure configuration for a mainframe-to-cloud batch ETL pipeline. The pipeline is designed to process monthly customer internet invoices, transforming legacy AFP (Advanced Function Presentation) files into standard PDFs, and loading metadata into Google Cloud BigQuery.
 
-The pipeline models how enterprise invoice data is delivered, processed, stored, and indexed using Linux, Unix tooling, and cloud‑native services.
+## Architecture Overview
 
----
+The system is designed to run across a fleet of Linux VMs in a distributed manner:
+1. **Ingestion:** AFP payloads are aggregated into TAR files and uploaded to Google Cloud Storage (GCS) `Raw`.
+2. **Workload Distribution:** A Google Cloud Pub/Sub queue distributes batches to available worker VMs to prevent bottlenecks and ensure fault tolerance.
+3. **Processing:** Worker VMs download the batches, extract them, and utilize a vendor tool to convert AFP files to PDFs.
+4. **Storage & Metadata:** Generated PDFs are uploaded to a GCS `Processed` bucket. Processing metadata is published to a BigQuery data warehouse for analytics and reporting.
 
-## Overview
+## Repository Structure
 
-This project simulates a realistic enterprise data pipeline where:
+To maintain a clean separation of concerns, the repository is organized into domains:
 
-- A **mainframe** generates invoice data in **AFP (Advanced Function Presentation)** format.
-- Files are packaged into **TAR batches** and delivered via **SFTP**.
-- A **Linux VM** ingests, processes, and converts documents (**AFP → PDF**).
-- Files are stored in **Google Cloud Storage (GCS)**.
-- **Metadata** is published to **BigQuery** for analytics and lookup.
+```text
+afp-to-pdf-pipeline/
+├── infrastructure/    # Cloud provisioning (Terraform, VM startup scripts)
+├── scripts/           # Ad-hoc admin, reporting, setup, and dev data tools
+├── src/               # Core production application code running on the VMs
+└── tests/             # Automated unit and integration tests
+```
 
-The goal is to practice and demonstrate:
-- Linux‑based data processing
-- Unix shell scripting
-- Batch ETL design
-- Cloud storage patterns
-- Clear separation of responsibilities across systems
+> **Note:** See the nested `README.md` files within `src/` and `scripts/` for detailed explanations of those specific directories.
 
-## Development Resources
+## Tech Stack
 
-- **Processed PDFs (GCS bucket):** `gs://afp-pdfs-dev-highttyler`
+* **Operating System:** Linux (Ubuntu/Debian)
+* **Orchestration:** Bash shell scripting & Python
+* **Cloud Provider:** Google Cloud Platform (GCP)
+  * **Storage:** Cloud Storage (GCS)
+  * **Messaging:** Cloud Pub/Sub
+  * **Analytics:** BigQuery
+
+## Getting Started
+
+*(Instructions to be added for local development setup, credentials, and deployment).*
+
+### Prerequisites
+* `gcloud` CLI installed and authenticated
+* Python 3.x
+* Vendor `afp2pdf` binary available on the host system
+
+## Current Status
+
+- [x] Bash scaffolding for the ETL lifecycle (`src/run_etl_pipeline.sh`).
+- [x] Utilities for generating mock dev data and coverage reporting (`scripts/`).
+- [ ] Migration of the core worker daemon to Python.
+- [ ] Implementation of the Pub/Sub listener.
+- [ ] BigQuery metadata insertion logic.

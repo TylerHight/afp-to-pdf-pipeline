@@ -1,0 +1,1 @@
+This directory contains Bash scripts that run when the Linux VMs boot up.

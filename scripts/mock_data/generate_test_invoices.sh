@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # -----------------------------------------------------------------------------
-# put_richer_test_pdfs.sh
+# generate_test_invoices.sh
 #
 # Purpose:
 #   Seed a realistic dev dataset in your processed bucket:

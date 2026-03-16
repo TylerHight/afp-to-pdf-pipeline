@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # -----------------------------------------------------------------------------
-# list_coverage.sh
+# report_monthly_coverage.sh
 #
 # Purpose:
 #   Scan a processed bucket laid out as:
