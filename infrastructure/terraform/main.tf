@@ -13,30 +13,38 @@ provider "google" {
   region  = var.region
 }
 
-# GCS bucket for processed PDFs (dev)
-resource "google_storage_bucket" "pdf_processed" {
-  name                        = var.processed_bucket_name
-  location                    = var.location
-  storage_class               = var.storage_class
-  uniform_bucket_level_access = true
-  force_destroy               = false
+module "processed_bucket" {
+  source = "./modules/storage_bucket"
 
-  versioning {
-    enabled = true
-  }
+  name               = var.processed_bucket_name
+  location           = var.location
+  storage_class      = var.storage_class
+  env                = var.env
+  purpose_label      = "processed-pdfs"
+  retention_days     = var.processed_pdf_retention_days
+  force_destroy      = var.processed_bucket_force_destroy
+  labels             = var.processed_bucket_labels
+  app_label          = "afp-to-pdf"
+  versioning_enabled = true
+}
 
-  lifecycle_rule {
-    action {
-      type = "Delete"
-    }
-    condition {
-      age = var.processed_pdf_retention_days
-    }
-  }
+module "bigquery" {
+  count  = var.enable_bigquery ? 1 : 0
+  source = "./modules/bigquery"
+
+  project_id                   = var.project_id
+  dataset_id                   = var.bigquery_dataset_id
+  location                     = var.bigquery_location
+  dataset_description          = var.bigquery_dataset_description
+  create_operations_table      = var.bigquery_create_operations_table
+  operations_table_id          = var.bigquery_operations_table_id
+  worker_service_account_email = var.bigquery_worker_service_account_email
+  worker_dataset_role          = var.bigquery_worker_dataset_role
+  delete_contents_on_destroy   = var.bigquery_delete_contents_on_destroy
 
   labels = {
     app     = "afp-to-pdf"
     env     = var.env
-    purpose = "processed-pdfs"
+    purpose = "pipeline-ops"
   }
 }
