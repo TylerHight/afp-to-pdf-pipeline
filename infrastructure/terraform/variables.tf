@@ -52,13 +52,13 @@ variable "processed_bucket_labels" {
 
 variable "enable_bigquery" {
   type        = bool
-  description = "Whether to create BigQuery resources for pipeline operations."
+  description = "Whether to create BigQuery resources for work distribution."
   default     = true
 }
 
 variable "bigquery_dataset_id" {
   type        = string
-  description = "BigQuery dataset ID for pipeline operations metadata."
+  description = "BigQuery dataset ID for AFP-to-PDF work distribution."
   default     = "afp_pdf_poc"
 }
 
@@ -71,24 +71,24 @@ variable "bigquery_location" {
 variable "bigquery_dataset_description" {
   type        = string
   description = "Description for the BigQuery dataset."
-  default     = "Dataset for AFP to PDF pipeline operations and reporting."
+  default     = "Dataset for AFP-to-PDF work distribution and lock leasing."
 }
 
-variable "bigquery_create_operations_table" {
+variable "bigquery_create_lock_table" {
   type        = bool
-  description = "Whether to create a generic pipeline operations table."
+  description = "Whether to create the BigQuery work lock table."
   default     = true
 }
 
-variable "bigquery_operations_table_id" {
+variable "bigquery_lock_table_id" {
   type        = string
-  description = "Table ID for the generic pipeline operations table."
-  default     = "pipeline_operations"
+  description = "Table ID for the VM work lock table."
+  default     = "work_locks"
 }
 
-variable "bigquery_operations_table_deletion_protection" {
+variable "bigquery_lock_table_deletion_protection" {
   type        = bool
-  description = "When true, prevents Terraform from deleting the BigQuery operations table."
+  description = "When true, prevents Terraform from deleting the BigQuery work lock table."
   default     = false
 }
 
@@ -106,6 +106,6 @@ variable "bigquery_worker_dataset_role" {
 
 variable "bigquery_delete_contents_on_destroy" {
   type        = bool
-  description = "Allow terraform destroy to delete BigQuery dataset even if it contains tables/data."
+  description = "Allow terraform destroy to delete BigQuery dataset even if it contains tables or lock rows."
   default     = true
 }

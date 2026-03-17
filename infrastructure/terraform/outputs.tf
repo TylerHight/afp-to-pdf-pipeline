@@ -4,11 +4,11 @@ output "processed_bucket_uri" {
 }
 
 output "bigquery_dataset_fqn" {
-  description = "Fully-qualified BigQuery dataset name for pipeline operations."
+  description = "Fully-qualified BigQuery dataset name for work distribution."
   value       = var.enable_bigquery ? module.bigquery[0].dataset_fqn : null
 }
 
-output "bigquery_operations_table_fqn" {
-  description = "Fully-qualified BigQuery operations table name."
-  value       = var.enable_bigquery ? module.bigquery[0].operations_table_fqn : null
+output "bigquery_lock_table_fqn" {
+  description = "Fully-qualified BigQuery work lock table name."
+  value       = var.enable_bigquery ? module.bigquery[0].lock_table_fqn : null
 }

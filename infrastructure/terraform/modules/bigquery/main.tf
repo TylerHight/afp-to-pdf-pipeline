@@ -8,26 +8,61 @@ resource "google_bigquery_dataset" "this" {
   labels = var.labels
 }
 
-resource "google_bigquery_table" "pipeline_operations" {
-  count = var.create_operations_table ? 1 : 0
+resource "google_bigquery_table" "work_locks" {
+  count = var.create_lock_table ? 1 : 0
 
   project             = var.project_id
   dataset_id          = google_bigquery_dataset.this.dataset_id
-  table_id            = var.operations_table_id
-  deletion_protection = var.operations_table_deletion_protection
+  table_id            = var.lock_table_id
+  deletion_protection = var.lock_table_deletion_protection
 
-  description = "Generic pipeline operations table for lightweight metadata and audit events."
+  description = "Lease-based work distribution table for AFP-to-PDF worker VMs."
 
   schema = jsonencode([
     {
-      name = "operation_id"
+      name = "lock_id"
       type = "STRING"
       mode = "REQUIRED"
     },
     {
-      name = "operation_type"
+      name = "work_type"
       type = "STRING"
       mode = "REQUIRED"
+    },
+    {
+      name = "shard_key"
+      type = "STRING"
+      mode = "REQUIRED"
+    },
+    {
+      name = "billing_cycle_date"
+      type = "DATE"
+      mode = "NULLABLE"
+    },
+    {
+      name = "ban_range_start"
+      type = "STRING"
+      mode = "NULLABLE"
+    },
+    {
+      name = "ban_range_end"
+      type = "STRING"
+      mode = "NULLABLE"
+    },
+    {
+      name = "ban_count"
+      type = "INT64"
+      mode = "NULLABLE"
+    },
+    {
+      name = "source_uri"
+      type = "STRING"
+      mode = "NULLABLE"
+    },
+    {
+      name = "destination_prefix"
+      type = "STRING"
+      mode = "NULLABLE"
     },
     {
       name = "status"
@@ -35,12 +70,57 @@ resource "google_bigquery_table" "pipeline_operations" {
       mode = "REQUIRED"
     },
     {
-      name = "source_system"
+      name = "priority"
+      type = "INT64"
+      mode = "REQUIRED"
+    },
+    {
+      name = "attempt_count"
+      type = "INT64"
+      mode = "REQUIRED"
+    },
+    {
+      name = "max_attempts"
+      type = "INT64"
+      mode = "REQUIRED"
+    },
+    {
+      name = "lease_owner"
       type = "STRING"
       mode = "NULLABLE"
     },
     {
-      name = "details_json"
+      name = "lease_token"
+      type = "STRING"
+      mode = "NULLABLE"
+    },
+    {
+      name = "lease_expires_at"
+      type = "TIMESTAMP"
+      mode = "NULLABLE"
+    },
+    {
+      name = "claimed_at"
+      type = "TIMESTAMP"
+      mode = "NULLABLE"
+    },
+    {
+      name = "last_heartbeat_at"
+      type = "TIMESTAMP"
+      mode = "NULLABLE"
+    },
+    {
+      name = "completed_at"
+      type = "TIMESTAMP"
+      mode = "NULLABLE"
+    },
+    {
+      name = "last_error"
+      type = "STRING"
+      mode = "NULLABLE"
+    },
+    {
+      name = "metadata_json"
       type = "JSON"
       mode = "NULLABLE"
     },

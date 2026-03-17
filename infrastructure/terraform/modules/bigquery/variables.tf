@@ -5,7 +5,7 @@ variable "project_id" {
 
 variable "dataset_id" {
   type        = string
-  description = "BigQuery dataset ID for pipeline operations."
+  description = "BigQuery dataset ID for AFP-to-PDF work distribution."
 }
 
 variable "location" {
@@ -17,24 +17,24 @@ variable "location" {
 variable "dataset_description" {
   type        = string
   description = "Description for the BigQuery dataset."
-  default     = "Dataset for AFP to PDF pipeline operations and reporting."
+  default     = "Dataset for AFP-to-PDF work distribution and lock leasing."
 }
 
-variable "create_operations_table" {
+variable "create_lock_table" {
   type        = bool
-  description = "Whether to create a generic pipeline operations table."
+  description = "Whether to create the AFP-to-PDF work lock table."
   default     = true
 }
 
-variable "operations_table_id" {
+variable "lock_table_id" {
   type        = string
-  description = "Table ID used for generic pipeline operations metadata."
-  default     = "pipeline_operations"
+  description = "Table ID used for VM work leasing and lock coordination."
+  default     = "work_locks"
 }
 
-variable "operations_table_deletion_protection" {
+variable "lock_table_deletion_protection" {
   type        = bool
-  description = "When true, prevents Terraform from deleting the operations table."
+  description = "When true, prevents Terraform from deleting the work lock table."
   default     = false
 }
 

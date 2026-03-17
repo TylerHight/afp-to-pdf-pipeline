@@ -1,6 +1,6 @@
 # Utility Scripts
 
-This directory contains ad-hoc shell and Python scripts used for administration, reporting, setup, and local development. 
+This directory contains ad-hoc shell and Python scripts used for administration, reporting, setup, and local development.
 
 **Important:** The scripts in this directory are *not* intended to be run by the core worker daemon on the production VMs. Core pipeline logic belongs in the `src/` directory.
 
@@ -15,10 +15,10 @@ This directory contains ad-hoc shell and Python scripts used for administration,
   *Example: `report_monthly_coverage.sh` scans the processed bucket to identify existing and missing Billing Account Numbers (BANs) within a date range.*
 
 * **`setup/`** *(Planned)*
-  One-time initialization scripts to scaffold cloud infrastructure, such as creating Pub/Sub topics/subscriptions or defining BigQuery schemas.
+  One-time initialization scripts to scaffold cloud infrastructure, such as creating input bucket policies or defining initial BigQuery lock rows.
 
 * **`admin/`** *(Planned)*
-  Scripts for manual operational tasks, such as querying BigQuery directly via Python from an administrator's machine.
+  Scripts for manual operational tasks, such as bulk-seeding or inspecting BigQuery work locks from an administrator's machine.
 
 * **`deployment/`** *(Planned)*
   Scripts to package the `src/` directory and deploy it to the fleet of worker VMs.
