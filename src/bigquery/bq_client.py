@@ -147,6 +147,50 @@ def _row_to_dict(row: Any) -> dict[str, Any]:
     return dict(row.items())
 
 
+def _validate_chunk_definition(
+    *,
+    date_range_start: str | None,
+    date_range_end: str | None,
+    target_ban_count: int | None,
+    selected_ban_count: int | None,
+    chunk_index: int | None,
+    ban_list_uri: str | None,
+) -> None:
+    has_chunk_fields = any(
+        value is not None
+        for value in (
+            date_range_start,
+            date_range_end,
+            target_ban_count,
+            selected_ban_count,
+            chunk_index,
+            ban_list_uri,
+        )
+    )
+    if not has_chunk_fields:
+        return
+
+    if bool(date_range_start) != bool(date_range_end):
+        raise ValueError("Both --date-range-start and --date-range-end must be provided together.")
+
+    if target_ban_count is None or target_ban_count <= 0:
+        raise ValueError("--target-ban-count must be a positive integer for a date-range chunk.")
+
+    if selected_ban_count is None or selected_ban_count <= 0:
+        raise ValueError("--selected-ban-count must be a positive integer for a date-range chunk.")
+
+    if selected_ban_count > target_ban_count:
+        raise ValueError("--selected-ban-count cannot be greater than --target-ban-count.")
+
+    if chunk_index is None or chunk_index < 0:
+        raise ValueError("--chunk-index must be zero or greater for a date-range chunk.")
+
+    if not ban_list_uri:
+        raise ValueError(
+            "--ban-list-uri is required so each lock row points to a deterministic BAN membership list."
+        )
+
+
 def _fetch_lock_row(client: "bigquery.Client", config: BigQueryConfig, lock_id: str) -> dict[str, Any] | None:
     query = f"""
         SELECT *
@@ -166,10 +210,12 @@ def create_lock(
     *,
     work_type: str,
     shard_key: str,
-    billing_cycle_date: str | None,
-    ban_range_start: str | None,
-    ban_range_end: str | None,
-    ban_count: int | None,
+    date_range_start: str | None,
+    date_range_end: str | None,
+    target_ban_count: int | None,
+    selected_ban_count: int | None,
+    chunk_index: int | None,
+    ban_list_uri: str | None,
     source_uri: str | None,
     destination_prefix: str | None,
     priority: int,
@@ -178,15 +224,25 @@ def create_lock(
     lock_id: str | None = None,
 ) -> dict[str, Any]:
     client = _create_client(config.project_id)
+    _validate_chunk_definition(
+        date_range_start=date_range_start,
+        date_range_end=date_range_end,
+        target_ban_count=target_ban_count,
+        selected_ban_count=selected_ban_count,
+        chunk_index=chunk_index,
+        ban_list_uri=ban_list_uri,
+    )
     now_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     row = {
         "lock_id": lock_id or str(uuid.uuid4()),
         "work_type": work_type,
         "shard_key": shard_key,
-        "billing_cycle_date": billing_cycle_date,
-        "ban_range_start": ban_range_start,
-        "ban_range_end": ban_range_end,
-        "ban_count": ban_count,
+        "date_range_start": date_range_start,
+        "date_range_end": date_range_end,
+        "target_ban_count": target_ban_count,
+        "selected_ban_count": selected_ban_count,
+        "chunk_index": chunk_index,
+        "ban_list_uri": ban_list_uri,
         "source_uri": source_uri,
         "destination_prefix": destination_prefix,
         "status": "PENDING",
@@ -434,12 +490,14 @@ def build_parser() -> argparse.ArgumentParser:
     create_lock_parser = subparsers.add_parser("create-lock", help="Insert one pending lock row.")
     _add_common_args(create_lock_parser)
     create_lock_parser.add_argument("--lock-id", help="Optional explicit lock ID.")
-    create_lock_parser.add_argument("--work-type", default="ban_day_batch")
+    create_lock_parser.add_argument("--work-type", default="ban_date_chunk")
     create_lock_parser.add_argument("--shard-key", required=True)
-    create_lock_parser.add_argument("--billing-cycle-date")
-    create_lock_parser.add_argument("--ban-range-start")
-    create_lock_parser.add_argument("--ban-range-end")
-    create_lock_parser.add_argument("--ban-count", type=int)
+    create_lock_parser.add_argument("--date-range-start")
+    create_lock_parser.add_argument("--date-range-end")
+    create_lock_parser.add_argument("--target-ban-count", type=int)
+    create_lock_parser.add_argument("--selected-ban-count", type=int)
+    create_lock_parser.add_argument("--chunk-index", type=int)
+    create_lock_parser.add_argument("--ban-list-uri")
     create_lock_parser.add_argument("--source-uri")
     create_lock_parser.add_argument("--destination-prefix")
     create_lock_parser.add_argument("--priority", type=int, default=100)
@@ -503,10 +561,12 @@ def main(argv: list[str] | None = None) -> int:
             lock_id=args.lock_id,
             work_type=args.work_type,
             shard_key=args.shard_key,
-            billing_cycle_date=args.billing_cycle_date,
-            ban_range_start=args.ban_range_start,
-            ban_range_end=args.ban_range_end,
-            ban_count=args.ban_count,
+            date_range_start=args.date_range_start,
+            date_range_end=args.date_range_end,
+            target_ban_count=args.target_ban_count,
+            selected_ban_count=args.selected_ban_count,
+            chunk_index=args.chunk_index,
+            ban_list_uri=args.ban_list_uri,
             source_uri=args.source_uri,
             destination_prefix=args.destination_prefix,
             priority=args.priority,

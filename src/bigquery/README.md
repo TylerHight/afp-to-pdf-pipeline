@@ -4,10 +4,12 @@ This folder contains the BigQuery lock-table client used to distribute AFP-to-PD
 
 Each row in the lock table represents one shard of work that a VM can lease:
 
-- one invoice-day slice for a BAN range, or
+- one precomputed date-range chunk with a fixed BAN membership list, or
 - one input tar file, if tar files are already sized into balanced chunks
 
 For a 12-VM fleet, prefer seeding more than 12 rows. A practical starting point is 60 to 120 lock rows so slow shards do not strand a VM.
+
+For date-range chunking, do not let workers choose "any 25,000 BANs" at claim time. Seed the exact BAN membership list first, write it to GCS, and store that list in `ban_list_uri`.
 
 ## Files
 
@@ -31,7 +33,8 @@ For a 12-VM fleet, prefer seeding more than 12 rows. A practical starting point 
 The Terraform-managed table defaults to `work_locks` and includes:
 
 - workload identity: `lock_id`, `work_type`, `shard_key`
-- business partitioning: `billing_cycle_date`, `ban_range_start`, `ban_range_end`, `ban_count`
+- business partitioning: `date_range_start`, `date_range_end`, `target_ban_count`, `selected_ban_count`, `chunk_index`
+- deterministic membership: `ban_list_uri`
 - storage routing: `source_uri`, `destination_prefix`
 - lease control: `status`, `lease_owner`, `lease_token`, `lease_expires_at`, `last_heartbeat_at`
 - retry and audit fields: `priority`, `attempt_count`, `max_attempts`, `last_error`, `created_at`, `updated_at`, `completed_at`
@@ -55,11 +58,13 @@ python ./src/bigquery/bq_client.py show-config
 
 # seed one shard
 bash ./src/bigquery/create_lock.sh \
-  --shard-key 2026-03-01-ban-bucket-01 \
-  --billing-cycle-date 2026-03-01 \
-  --ban-range-start 10000000 \
-  --ban-range-end 10024999 \
-  --ban-count 25000 \
+  --shard-key 2026-03-01_to_2026-03-03_chunk_000 \
+  --date-range-start 2026-03-01 \
+  --date-range-end 2026-03-03 \
+  --target-ban-count 25000 \
+  --selected-ban-count 24871 \
+  --chunk-index 0 \
+  --ban-list-uri gs://afp-input/manifests/2026-03-01_to_2026-03-03/chunk-000.json \
   --source-uri gs://afp-input/monthly/2026-03/day-01.tar \
   --destination-prefix gs://afp-output/monthly/2026-03/day-01/
 

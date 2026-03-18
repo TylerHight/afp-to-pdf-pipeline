@@ -35,23 +35,33 @@ resource "google_bigquery_table" "work_locks" {
       mode = "REQUIRED"
     },
     {
-      name = "billing_cycle_date"
+      name = "date_range_start"
       type = "DATE"
       mode = "NULLABLE"
     },
     {
-      name = "ban_range_start"
-      type = "STRING"
+      name = "date_range_end"
+      type = "DATE"
       mode = "NULLABLE"
     },
     {
-      name = "ban_range_end"
-      type = "STRING"
-      mode = "NULLABLE"
-    },
-    {
-      name = "ban_count"
+      name = "target_ban_count"
       type = "INT64"
+      mode = "NULLABLE"
+    },
+    {
+      name = "selected_ban_count"
+      type = "INT64"
+      mode = "NULLABLE"
+    },
+    {
+      name = "chunk_index"
+      type = "INT64"
+      mode = "NULLABLE"
+    },
+    {
+      name = "ban_list_uri"
+      type = "STRING"
       mode = "NULLABLE"
     },
     {

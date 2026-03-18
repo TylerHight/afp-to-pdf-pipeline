@@ -10,7 +10,7 @@ The system is designed to run across a fleet of Linux VMs in a distributed manne
 3. **Processing:** Worker VMs download the assigned TAR payload, extract it, and use a vendor tool to convert AFP files to PDFs.
 4. **Storage:** Generated PDFs are uploaded to a destination GCS bucket, and the lock row preserves lease and retry state.
 
-For a 12-VM fleet, the lock table should contain more shards than VMs so load stays balanced. A practical pattern is one row per tar file or one row per 1 to 3 invoice days for a BAN range, with at least 5 to 10 times as many rows as workers.
+For a 12-VM fleet, the lock table should contain more shards than VMs so load stays balanced. A practical pattern is one row per tar file or one row per 1 to 3 invoice days with a precomputed BAN list, with at least 5 to 10 times as many rows as workers.
 
 ## Repository Structure
 
