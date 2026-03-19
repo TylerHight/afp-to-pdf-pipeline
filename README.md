@@ -2,6 +2,11 @@
 
 This repository contains the code and infrastructure configuration for a mainframe-to-cloud batch ETL pipeline. The pipeline is designed to process monthly customer internet invoices, transforming legacy AFP (Advanced Function Presentation) files into standard PDFs, and coordinating worker load through a BigQuery lock table.
 
+See [docs/architecture.md](docs/architecture.md) for the full pipeline architecture, delivery plan, validations, and operational guidance. Companion docs:
+
+- [docs/planner-and-chunking.md](docs/planner-and-chunking.md)
+- [docs/conversion-results.md](docs/conversion-results.md)
+
 ## Architecture Overview
 
 The system is designed to run across a fleet of Linux VMs in a distributed manner:

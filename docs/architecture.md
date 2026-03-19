@@ -9,7 +9,11 @@ It is written as a developer handoff document for a team of two engineers delive
 ## Companion Documents
 
 - [planner-and-chunking.md](planner-and-chunking.md): deterministic chunk planning, BAN-list manifest contract, seeding flow, and worker expectations
+- [worker-processing.md](worker-processing.md): worker daemon responsibilities, processing flow, validations, and idempotency expectations
 - [conversion-results.md](conversion-results.md): reporting table contract, statuses, validation rules, and progress views
+- [diagrams/architecture_diagram.md](diagrams/architecture_diagram.md): high-level system architecture diagram
+- [diagrams/work_lock_lifecycle_diagram.md](diagrams/work_lock_lifecycle_diagram.md): chunk leasing, worker processing, and stale-lease retry lifecycle
+- [diagrams/worker_processing_diagram.md](diagrams/worker_processing_diagram.md): worker claim, manifest load, tar processing, validation, upload, and result recording flow
 
 ## Answers At A Glance
 
